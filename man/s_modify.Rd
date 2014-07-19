@@ -2,7 +2,7 @@
 \alias{s_modify}
 \title{Modified version of modify that uses string arguments}
 \usage{
-s_modify(.data, ...)
+s_modify(.dt, ..., .envir = parent.frame())
 }
 \description{
 Modified version of modify that uses string arguments

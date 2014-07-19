@@ -1,0 +1,21 @@
+\name{remove_cols}
+\alias{remove_cols}
+\title{Inplace remove columns from a data.table}
+\usage{
+remove_cols(dt, cols)
+}
+\arguments{
+  \item{dt}{a data.table}
+
+  \item{cols}{a string with column names}
+}
+\description{
+Inplace remove columns from a data.table
+}
+
+\examples{\dontrun{
+  dt = data.table(a=1:3, b=1:3, c=4:6)
+  dt
+  remove_cols(dt,c("a" ,"b"))
+  dt
+}}

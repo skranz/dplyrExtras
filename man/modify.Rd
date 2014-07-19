@@ -1,12 +1,12 @@
 \name{modify}
 \alias{modify}
-\title{Fast in place modification of data.frames and data.tables}
+\title{In place modification of data tables}
 \usage{
-modify(.data, .if, .by = NULL, ..., .envir = parent.frame())
+modify(.dt, .if, .by = NULL, ..., .envir = parent.frame(),
+  .inplace = is.data.table(.dt), .as.data.table = is.data.table(.dt))
 }
 \arguments{
-  \item{.data}{a data.frame, data.table or dplyr tbl
-  object}
+  \item{.dt}{a data.table}
 
   \item{.if}{optional a boolean conditions that specifies
   the rows that shall be modifed}
@@ -16,61 +16,45 @@ modify(.data, .if, .by = NULL, ..., .envir = parent.frame())
 
   \item{...}{formulas for columns that are modified or
   newly created}
+
+  \item{.envir}{optional an environment in which the
+  expressions shall be evaluated if variables are not found
+  in .dt}
 }
 \description{
-modify is essentially just a wrapper for data.table syntax
-but it can be used for other data containers. It is thought
-as an addition to dplyr functions. While the functionality
-can be replicated by mutate, modify can be much faster and
-more concise if only values for selected rows shall be
-modified.
+If dt is a data table, then modify is essentially just a
+wrapper for data.table syntax that allows modification or
+creation of new columns. If dt is not a data table, it will
+by default be converted to a data table and then
+transformed and returned as the original data frame. Unlike
+mutate from dplyr, one can use the .SD argument in function
+calls, which can quite useful sometimes.
 }
 
 \examples{\dontrun{
   
   library(microbenchmark)
-  library(modify)
 
+  K = 3
   n = 10
-  df = data.frame(a= sample(1:3,n,replace=TRUE),
+  dt = data.table(a= sample(1:3,n,replace=TRUE),
                    b= sample(1:100,n,replace=TRUE),
                    x=rnorm(n))
+  df = as.data.frame(dt)
   # Set x to 100 where a==2
-  modify(df,a==2, x=100)
-  df
-  # Set x to the mean value of b*100 in each group of a
-  modify(df,.by=c("a"),
-         x=mean(b)*100)
-  df
+  modify(dt,a==2, y=x+100, z=y+K)
   
+  modify(df,a==2,y=200,z=y*5+K)
+  
+  dt[,y:=x+2]
+  
+  # Set x to the mean value of b*100 in each group of a
+  modify(dt,.by=c("a"), x=mean(b)*100)
+  dt
   # Call with strings
   com = "x=200"
-  s_modify(df,"a==2", com)
-  
+  s_modify(dt,"a==2", com)
+  dt
 
-  
-  # Benckmark compared to directly using data.table or dplyr 
-  n = 1e6
-  df = data.frame(a= sample(1:5,n,replace=TRUE),
-                   b= sample(1:100,n,replace=TRUE),
-                   x=rnorm(n))
-  dt = as.data.table(df)
-  
-  tbl = as.tbl(df)  
-  modify(tbl, a==2,x = x+100)
-  mutate(df, x=ifelse(a==2,x+100,x))
-  
-  microbenchmark(times = 5L,
-    modify(tbl,a==2, x = x+100),
-    modify(df,a==2, x = x+100),
-    modify(dt,a==2, x = x+100),
-    dt[a==2,x:=x+100],
-    mutate.df = mutate(df, x=ifelse(a==2,x+100,x)),
-    mutate.tbl = mutate(tbl, x=ifelse(a==2,x+100,x))
-  )
-  # Substantial speed increases compared to mutate with ifelse
-  # and not much slower than directly using data.table syntax
-  
-
-
+ 
 }}

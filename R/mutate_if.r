@@ -50,7 +50,7 @@ mutate_if.tbl_df <- function (.data,.if,...) {
 }
  
 #' @export
-mutate.tbl_dt <- function(.data,.if, ...) {
+mutate_if.tbl_dt <- function(.data,.if, ...) {
   .if.quoted = substitute(.if)
   tbl_dt(
   mutate_if.data.table(.data=.data,.if.quoted=.if.quoted,...,inplace=TRUE, .parent.env = parent.frame())

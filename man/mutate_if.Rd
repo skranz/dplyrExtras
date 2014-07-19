@@ -45,7 +45,7 @@ condition
   x=rnorm(n))
   microbenchmark(times = 5L,
     mutate(df, x=ifelse(a==2,x+100,x)),
-    mutate_if(df, a==2, x=x+100)
+    mutate_if(df, a==2, x=x+100),
   )
   #Unit: milliseconds
   # expr min lq median uq max neval

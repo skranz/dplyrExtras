@@ -2,59 +2,41 @@
 examples.modify = function() {
   
   library(microbenchmark)
-  library(modify)
 
+  K = 3
   n = 10
-  df = data.frame(a= sample(1:3,n,replace=TRUE),
+  dt = data.table(a= sample(1:3,n,replace=TRUE),
                    b= sample(1:100,n,replace=TRUE),
                    x=rnorm(n))
+  df = as.data.frame(dt)
   # Set x to 100 where a==2
-  modify(df,a==2, x=100)
-  df
-  # Set x to the mean value of b*100 in each group of a
-  modify(df,.by=c("a"),
-         x=mean(b)*100)
-  df
+  modify(dt,a==2, y=x+100, z=y+K)
   
+  modify(df,a==2,y=200,z=y*5+K)
+  
+  dt[,y:=x+2]
+  
+  # Set x to the mean value of b*100 in each group of a
+  modify(dt,.by=c("a"), x=mean(b)*100)
+  dt
   # Call with strings
   com = "x=200"
-  s_modify(df,"a==2", com)
-  
+  s_modify(dt,"a==2", com)
+  dt
 
-  
-  # Benckmark compared to directly using data.table or dplyr 
-  n = 1e6
-  df = data.frame(a= sample(1:5,n,replace=TRUE),
-                   b= sample(1:100,n,replace=TRUE),
-                   x=rnorm(n))
-  dt = as.data.table(df)
-  
-  tbl = as.tbl(df)  
-  modify(tbl, a==2,x = x+100)
-  mutate(df, x=ifelse(a==2,x+100,x))
-  
-  microbenchmark(times = 5L,
-    modify(tbl,a==2, x = x+100),
-    modify(df,a==2, x = x+100),
-    modify(dt,a==2, x = x+100),
-    dt[a==2,x:=x+100],
-    mutate.df = mutate(df, x=ifelse(a==2,x+100,x)),
-    mutate.tbl = mutate(tbl, x=ifelse(a==2,x+100,x))
-  )
-  # Substantial speed increases compared to mutate with ifelse
-  # and not much slower than directly using data.table syntax
-  
-
-
+ 
 }
 
 EmptySymbol = function() (quote(f(,)))[[2]]
 
-get.data.table.modify.call = function(args=NULL, filter.call=NULL, by=NULL, dat.quote=quote(dt)) {
+get.data.table.modify.call = function(args=NULL, filter.call=NULL, by=NULL, dat.quote=quote(.data)) {
   if (length(args)==1) {
     com = call(":=",names(args)[1],args[[1]])
   } else {
-    com = as.call(c(list(quote(`:=`)),args))
+    return(as.expression(lapply(seq_along(args),function(i) {
+      get.data.table.modify.call(args=args[i], filter.call = filter.call, by=by, dat.quote=dat.quote)
+    })))
+    #com = as.call(c(list(quote(`:=`)),args))
   }
   
   if (is.null(filter.call)) {
@@ -69,54 +51,59 @@ get.data.table.modify.call = function(args=NULL, filter.call=NULL, by=NULL, dat.
   ca
 } 
 
-#' Fast in place modification of data.frames and data.tables
+#' In place modification of data tables
 #' 
-#' modify is essentially just a wrapper for data.table syntax but it can be used
-#' for other data containers. It is thought as an addition to dplyr functions.
-#' While the functionality can be replicated by mutate, modify can be much faster
-#' and more concise if only values for selected rows shall be modified.
+#' If dt is a data table, then modify is essentially just a wrapper for data.table syntax that allows modification or creation of new columns. If dt is not a data table, it will by default be converted to a data table and then transformed and returned as the original data frame. Unlike mutate from dplyr, one can use the .SD argument in function calls, which can quite useful sometimes.
 #'  
-#' @param .data a data.frame, data.table or dplyr tbl object
+#' @param .dt a data.table
 #' @param .if optional a boolean conditions that specifies the rows that shall be modifed
 #' @param .by optional a vector of column names used for computations that are splitted by groups
 #' @param ... formulas for columns that are modified or newly created
+#' @param .envir optional an environment in which the expressions shall be evaluated if variables are not found in .dt
 #' @export 
-modify = function(.data,.if,.by=NULL,..., .envir=parent.frame()) {
-
-  .data = substitute(.data)
+modify = function(.dt,.if,.by=NULL,..., .envir=parent.frame(), .inplace=is.data.table(.dt), .as.data.table=is.data.table(.dt)) {
+    
   args =  eval(substitute(alist(...)))
-  #restore.point("modify")
-  data.var = as.character(.data)
-  dat = get(data.var,.envir)
-
-  if (!is.data.table(dat)) {
-    dt = as.data.table(dat)
-  } else {
-    dt = dat
-  }
-
   if (missing(.if)) {
     filter.call=NULL
   } else {
     filter.call=substitute(.if)
   }
-  ca = get.data.table.modify.call(args=args, by=.by, filter.call=filter.call)
-  
-  eval(ca)
-  if (!is.data.table(dat)) {
-    if (is.tbl(dat)) {
-      dat = as.tbl(dt)
+
+  if (.inplace) {
+    .dt = substitute(.dt)
+      
+    ca = get.data.table.modify.call(args=args, by=.by, filter.call=filter.call, dat.quote=.dt)
+    return(invisible(eval(ca,envir=.envir)))
+  } else {
+    env = new.env(parent=.envir)
+    old.class = class(.dt)
+    if (is.data.table(.dt)) {
+      assign(".dt", copy(.dt),env)
     } else {
-      dat = as(dt, class(dat))
+      assign(".dt", as.data.table(.dt),env)      
     }
-    assign(data.var, dat, .envir)
+    ca = get.data.table.modify.call(args=args, by=.by, filter.call=filter.call, dat.quote=quote(.dt))
+    eval(ca,envir=env)
+    ret = get(".dt",env)
+    if (.as.data.table) {
+      return(ret)
+    } else {
+      #try(return(as(ret, old.class)), silent=TRUE)
+      return(as.data.frame(ret))
+    }
   }
-  invisible(dat)
 }
 
 #' Modified version of modify that uses string arguments
 #' @export
-s_modify = function(.data, ...) {
-  eval.string.dplyr(.data,"modify", ...)
+s_modify = function(.dt, ..., .envir=parent.frame()) {
+  .dt = substitute(.dt)
+  data.str = paste0(deparse(.dt, width.cutoff=500), collapse="")
+  args = list(...)
+  args = unlist(args)
+  restore.point("s_modify")
+  code = paste0("modify(",data.str,",", paste0(args, collapse=","), ", .envir=.envir)")
+  invisible(eval(parse(text=code,srcfile=NULL)))
 }
  
