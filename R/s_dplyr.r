@@ -59,8 +59,12 @@ examples.s_filter = examples.s_arrange = examples.s_select = examples.s_mutate =
   library(dplyrExtras)
   
   d = mtcars
+  cols = c("mpg","cyl","hp:vs")
+  s_select(d,cols)
+  # also works and yields identical result...
   cols = c("mpg","cyl, hp:vs")
   s_select(d,cols)
+  
   s_filter(d,"gear == 3","cyl == 8")
   s_arrange(d, "-mpg, gear, carb")
   gd = s_group_by(d,"cyl")
