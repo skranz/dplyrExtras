@@ -10,7 +10,7 @@ xsummarise_each = function(tbl, funs, ..., .long="funs",.wide="vars") {
     i = 1
     li = lapply(seq_along(funs), function(i,...) {
       fun = as.character(funs[i][[1]])[1]
-      dt = summarise_each(tbl, funs_q(funs[i]), ...)
+      dt = summarise_each(tbl, funs(funs[i]), ...)
       cbind(.fun=fun, dt)
     },...)
     return(do.call("rbind",li))
@@ -28,12 +28,31 @@ xsummarise_each_q = function(tbl, funs, vars, .long="funs",.wide="vars") {
     i = 1
     li = lapply(seq_along(funs), function(i) {
       fun = as.character(funs[i][[1]])[1]
-      dt = summarise_each_q(tbl, funs=funs_q(funs[i]), vars=vars)
+      dt = summarise_each_q(tbl, funs=funs_(funs[i]), vars=vars)
       cbind(.fun=fun, dt)
     })
     return(do.call("rbind",li))
   }
   return(summarise_each_q(tbl,funs,vars=vars))
+}
+
+
+#' extended version of summarise_each_ that allows alternative arrangement of outputs
+#' 
+#' currently it is only checked whether "funs" is in .long or not.
+#' 
+#' @export
+xsummarise_each_ = function(tbl, funs, vars, .long="funs",.wide="vars") {
+  if ("funs" %in% .long) {
+    i = 1
+    li = lapply(seq_along(funs), function(i) {
+      fun = as.character(funs[i][[1]])[1]
+      dt = summarise_each_(tbl, funs=funs_(funs[i]), vars=vars)
+      cbind(.fun=fun, dt)
+    })
+    return(do.call("rbind",li))
+  }
+  return(summarise_each_(tbl,funs,vars=vars))
 }
 
 
@@ -44,9 +63,9 @@ examples.xsummarise_each = function() {
   by_species %>% summarise_each(funs(min, max), Petal.Width, Sepal.Width)
   by_species %>% xsummarise_each(funs(min, max), Petal.Width, Sepal.Width)
   
-  xsummarise_each_q(by_species,funs(min, max), vars=c("Petal.Width", "Sepal.Width"))
+  xsummarise_each_(by_species,funs(min, max), vars=c("Petal.Width", "Sepal.Width"))
 
-  by_species %>% xsummarise_each_q(funs(min, max), vars=c("Petal.Width", "Sepal.Width"))
+  by_species %>% xsummarise_each_(funs(min, max), vars=c("Petal.Width", "Sepal.Width"))
 }
 
 
