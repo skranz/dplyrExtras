@@ -34,7 +34,7 @@ mutate_if = function (.data,.if,...) {
 #' @export
 mutate_if.data.frame =function (.data,.if,...)
 {
-  dt = as.data.table(.data)
+  dt = as.data.frame(.data)
   .if.quoted = substitute(.if)
   as.data.frame(mutate_if.data.table(.data=dt,.if.quoted=.if.quoted,...,inplace=TRUE, .parent.env = parent.frame()))
 }
@@ -44,7 +44,7 @@ mutate_if.data.frame =function (.data,.if,...)
 
 #' @export
 mutate_if.tbl_df <- function (.data,.if,...) {
-  dt = as.data.table(.data)
+  dt = as.data.table(as.data.frame(.data))
   .if.quoted = substitute(.if)
   tbl_df(mutate_if.data.table(.data=dt,.if.quoted=.if.quoted,...,inplace=TRUE, .parent.env = parent.frame()))
 }
@@ -117,7 +117,7 @@ mutate_if.grouped_df <- function(.data,.if, ...) {
     return(.data)
   .if.quoted = substitute(.if)
   vars = groups(.data)
-  dt = as.data.table(.data)
+  dt = as.data.table(as.data.frame(.data))
   class(dt) = c("data.table","data.frame")
   mutate(dt, INDEX.ROW__ = 1:NROW(.data), inplace=TRUE)
   gdt = grouped_dt(dt, vars=vars)

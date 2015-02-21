@@ -7,4 +7,4 @@ Author: Sebastian Kranz
 Maintainer: Sebastian Kranz <sebastian.kranz@uni-ulm.de>
 Description: Some extra functionality that is not (yet) in dplyr, e.g. mutate_if or s_filter, s_arrange ,... that allow string arguments.
 License: GPL>=2.0
-Depends: dplyr, data.table
+Depends: data.table,dplyr
