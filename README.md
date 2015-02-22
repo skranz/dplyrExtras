@@ -10,5 +10,5 @@ To install in R, first install the package devtools from CRAN and then run
 
 ```
 library(devtools);
-install_github(repo="dplyrExtras", username="skranz")
+install_github(repo="skranz/dplyrExtras")
 ```
