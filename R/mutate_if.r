@@ -34,7 +34,7 @@ mutate_if = function (.data,.if,...) {
 #' @export
 mutate_if.data.frame =function (.data,.if,...)
 {
-  dt = as.data.frame(.data)
+  dt = as.data.table(as.data.frame(.data))
   .if.quoted = substitute(.if)
   as.data.frame(mutate_if.data.table(.data=dt,.if.quoted=.if.quoted,...,inplace=TRUE, .parent.env = parent.frame()))
 }
