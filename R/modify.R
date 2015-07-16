@@ -1,6 +1,5 @@
 
-examples.modify = function() {
-  
+examples.modify = function(a=0,K=0,n=0,x=0,y=0) {
   library(microbenchmark)
 
   K = 3
@@ -60,6 +59,8 @@ get.data.table.modify.call = function(args=NULL, filter.call=NULL, by=NULL, dat.
 #' @param .by optional a vector of column names used for computations that are splitted by groups
 #' @param ... formulas for columns that are modified or newly created
 #' @param .envir optional an environment in which the expressions shall be evaluated if variables are not found in .dt
+#' @param .inplace allows .dt inplace modification (TRUE if .dt is a data table)
+#' @param .as.data.table shall result be a data.table (only true if .dt is a data.table)
 #' @export 
 modify = function(.dt,.if,.by=NULL,..., .envir=parent.frame(), .inplace=is.data.table(.dt), .as.data.table=is.data.table(.dt)) {
     
@@ -96,13 +97,16 @@ modify = function(.dt,.if,.by=NULL,..., .envir=parent.frame(), .inplace=is.data.
 }
 
 #' Modified version of modify that uses string arguments
+#' @param .dt the data.table / similar object that shall be modified
+#' @param ... string version of arguments of modify (see example)
+#' @param .envir environment in which arguments will be evaluated (relevant if variables outside .dt are used) 
 #' @export
 s_modify = function(.dt, ..., .envir=parent.frame()) {
   .dt = substitute(.dt)
   data.str = paste0(deparse(.dt, width.cutoff=500), collapse="")
   args = list(...)
   args = unlist(args)
-  restore.point("s_modify")
+  #restore.point("s_modify")
   code = paste0("modify(",data.str,",", paste0(args, collapse=","), ", .envir=.envir)")
   invisible(eval(parse(text=code,srcfile=NULL)))
 }

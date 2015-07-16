@@ -69,9 +69,11 @@ examples.xsummarise_each = function() {
 }
 
 
-examples.xsummarise_each = function() {
+examples.xsummarise_each = function(Petal.Width=NULL, Sepal.Width=NULL, Species=NULL) {
   library(dplyr)
   library(dplyrExtras)
+  
+  data(iris)
   by_species <- group_by(iris,Species)
   summarise_each(by_species,funs(min, max), Petal.Width, Sepal.Width)
   xsummarise_each(by_species,funs(min, max), Petal.Width, Sepal.Width)
