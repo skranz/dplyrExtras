@@ -121,7 +121,9 @@ mutate_if.grouped_df <- function(.data,.if, ...) {
   vars = groups(.data)
   dt = as.data.table(as.data.frame(.data))
   class(dt) = c("data.table","data.frame")
-  mutate(dt, INDEX.ROW__ = 1:NROW(.data), inplace=TRUE)
+  # does not seem to work correctly
+  #mutate(dt, INDEX.ROW__ = 1:NROW(.data), inplace=TRUE)
+  dt$INDEX.ROW__ = 1:NROW(.data) # slower but seems to work
   gdt = grouped_dt(dt, vars=vars)
   gdt = mutate_if.grouped_dt(gdt,.if.quoted=.if.quoted,..., inplace=TRUE)
   data = dplyr:::grouped_df(data=as.data.frame(gdt), vars=vars)
