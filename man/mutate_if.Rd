@@ -14,58 +14,12 @@ mutate_if(.data, .if, ...)
 \item{...}{the command to mutate existing columns}
 }
 \description{
-change values of columns only in rows that satisfy the .if condition
-Note: you cannot create new columns with mutate_if but only change
-values in selected rows of existing columns
+Old pseudonym for mutate_rows.
+Originally the function mutate_rows was called mutate_if,
+however, dplyr 5.0 introduced also a function called mutate_if
+that does something different however. 
+I keep the synonym mutate_if in order to reduce the probability
+that old code breaks, but it is recommended to use mutate_rows
+instead.#'
 }
 
-\examples{\dontrun{
-  library(microbenchmark)
-  library(dplyr)
-  library(data.table)
-  library(dplyrExtras)
-
-  # create a data
-  set.seed(123456)
-  n = 10
-  df = data.frame(a= sample(1:3,n,replace=TRUE),
-  b= sample(1:100,n,replace=TRUE),
-  x=rnorm(n))
-  dt = as.data.table(df)
-  
-  # different calls to mutate_if
-  mutate_if(df,a==3,y=100)
-  mutate_if(tbl_df(df),a==1,x=200)
-  mutate_if(as.tbl(df),a==1,x=300,b=400)
-  mutate_if(dt,a==1 | a==2,x=400)
-  mutate_if(group_by(dt,a),a==1 | a==2,x=mean(b)) 
-  mutate_if(group_by(df,a),a==1 | a==2,x=mean(b))
-
-  # if you create a new column rows that don't
-  # match the if condition have an NA
-  mutate_if(df,a==3,z=100)
-  
-  # You can only have one if condition in a mutate_if call
-  # So multiple changes require nesting or piping
-  library(magrittr)
-  df %>% mutate_if(a==3,z=300) %>%
-         mutate_if(a==2,z=200) 
-  
-    
-  
-  # Small benchmark: compare with mutate + ifelse
-  n = 1e6
-  df = data.frame(a= sample(1:3,n,replace=TRUE),
-  b= sample(1:100,n,replace=TRUE),
-  x=rnorm(n))
-  microbenchmark(times = 5L,
-    mutate(df, x=ifelse(a==2,x+100,x)),
-    mutate_if(df, a==2, x=x+100),
-  )
-  #Unit: milliseconds
-  # expr min lq median uq max neval
-  # mutate(df, x = ifelse(a == 2, x + 100, x)) 749.2954 754.4179 815.06681 820.95872 860.79326 5
-  # mutate_if(df, a == 2, x = x + 100) 72.2886 75.4189 77.47787 83.64689 86.33666 5
-  
- 
-}}

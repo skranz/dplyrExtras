@@ -20,42 +20,61 @@ dt_env <- function(dt, env) {
 #' mutate selected rows
 #' 
 #' change values of columns only in rows that satisfy the .if condition
-#' Note: you cannot create new columns with mutate_if but only change
+#' Note: you cannot create new columns with mutate_rows but only change
 #' values in selected rows of existing columns
 #' 
 #' @param .data the data
 #' @param .if a logical condition that selects rows, e.g. a=="B"
 #' @param ... the command to mutate existing columns
 #' @export
-mutate_if = function (.data,.if,...) {
-  UseMethod("mutate_if")
+mutate_rows = function (.data,.if,...) {
+  UseMethod("mutate_rows")
 }
+
+
+#' mutate selected rows
+#' 
+#' Old pseudonym for mutate_rows.
+#' Originally the function mutate_rows was called mutate_if,
+#' however, dplyr 5.0 introduced also a function called mutate_if
+#' that does something different however. 
+#' I keep the synonym mutate_if in order to reduce the probability
+#' that old code breaks, but it is recommended to use mutate_rows
+#' instead.#' 
+#' @param .data the data
+#' @param .if a logical condition that selects rows, e.g. a=="B"
+#' @param ... the command to mutate existing columns
+#' @export
+mutate_if = function (.data,.if,...) {
+  UseMethod("mutate_rows")
+}
+ 
  
 # for tbl-data.frame.R
 
 #' @export
-mutate_if.data.frame =function (.data,.if,...)
+mutate_rows.data.frame =function (.data,.if,...)
 {
   dt = as.data.table(as.data.frame(.data))
   .if.quoted = substitute(.if)
-  as.data.frame(mutate_if.data.table(.data=dt,.if.quoted=.if.quoted,...,inplace=TRUE, .parent.env = parent.frame()))
+  as.data.frame(mutate_rows.data.table(.data=dt,.if.quoted=.if.quoted,...,inplace=TRUE, .parent.env = parent.frame()))
 }
  
 # for manip-df.r
  
 
 #' @export
-mutate_if.tbl_df <- function (.data,.if,...) {
+mutate_rows.tbl_df <- function (.data,.if,...) {
   dt = as.data.table(as.data.frame(.data))
   .if.quoted = substitute(.if)
-  tbl_df(mutate_if.data.table(.data=dt,.if.quoted=.if.quoted,...,inplace=TRUE, .parent.env = parent.frame()))
+  tbl_df(mutate_rows.data.table(.data=dt,.if.quoted=.if.quoted,...,inplace=TRUE, .parent.env = parent.frame()))
 }
  
 #' @export
-mutate_if.tbl_dt <- function(.data,.if, ...) {
+mutate_rows.tbl_dt <- function(.data,.if, ...) {
   .if.quoted = substitute(.if)
   tbl_dt(
-  mutate_if.data.table(.data=.data,.if.quoted=.if.quoted,...,inplace=TRUE, .parent.env = parent.frame())
+  mutate_rows.data.table(.data=.data,.if.quoted=.if.quoted,...,inplace=TRUE, .parent.env = parent.frame())
   )
 }
  
@@ -63,7 +82,7 @@ mutate_if.tbl_dt <- function(.data,.if, ...) {
  
 
 #' @export
-mutate_if.data.table <- function (.data,.if, ..., inplace = FALSE,.if.quoted=NULL, .parent.env=parent.frame())
+mutate_rows.data.table <- function (.data,.if, ..., inplace = FALSE,.if.quoted=NULL, .parent.env=parent.frame())
 {
   if (is.null(.if.quoted))
   .if.quoted = substitute(.if)
@@ -87,7 +106,7 @@ mutate_if.data.table <- function (.data,.if, ..., inplace = FALSE,.if.quoted=NUL
  
 
 #' @export
-mutate_if.grouped_dt <- function(.data,.if, ..., inplace = FALSE, .if.quoted=NULL) {
+mutate_rows.grouped_dt <- function(.data,.if, ..., inplace = FALSE, .if.quoted=NULL) {
   data <- .data
   if (is.null(.if.quoted))
   .if.quoted = substitute(.if)
@@ -110,7 +129,7 @@ mutate_if.grouped_dt <- function(.data,.if, ..., inplace = FALSE, .if.quoted=NUL
  
 
 #' @export
-mutate_if.grouped_df <- function(.data,.if, ...) {
+mutate_rows.grouped_df <- function(.data,.if, ...) {
   # This function is currently extremely unelegant and inefficient
   # Problem: when transforming to data.table row order will be changed
   # by group_by operation at least in dplyr 0.1.3
@@ -125,7 +144,7 @@ mutate_if.grouped_df <- function(.data,.if, ...) {
   #mutate(dt, INDEX.ROW__ = 1:NROW(.data), inplace=TRUE)
   dt$INDEX.ROW__ = 1:NROW(.data) # slower but seems to work
   gdt = grouped_dt(dt, vars=vars)
-  gdt = mutate_if.grouped_dt(gdt,.if.quoted=.if.quoted,..., inplace=TRUE)
+  gdt = mutate_rows.grouped_dt(gdt,.if.quoted=.if.quoted,..., inplace=TRUE)
   data = dplyr:::grouped_df(data=as.data.frame(gdt), vars=vars)
   # restore original order
   data = select(arrange(data, INDEX.ROW__), -INDEX.ROW__)
@@ -135,7 +154,7 @@ mutate_if.grouped_df <- function(.data,.if, ...) {
  
  
  
-examples.mutate_if = function() {
+examples.mutate_rows = function() {
   library(microbenchmark)
   library(dplyr)
   library(data.table)
@@ -149,23 +168,29 @@ examples.mutate_if = function() {
   x=rnorm(n))
   dt = as.data.table(df)
   
-  # different calls to mutate_if
-  mutate_if(df,a==3,y=100)
-  mutate_if(tbl_df(df),a==1,x=200)
-  mutate_if(as.tbl(df),a==1,x=300,b=400)
-  mutate_if(dt,a==1 | a==2,x=400)
-  mutate_if(group_by(dt,a),a==1 | a==2,x=mean(b)) 
-  mutate_if(group_by(df,a),a==1 | a==2,x=mean(b))
+  # different calls to mutate_rows
+  mutate_rows(df,a==3,y=100)
+  mutate_rows(tbl_df(df),a==1,x=200)
+  mutate_rows(as.tbl(df),a==1,x=300,b=400)
+  mutate_rows(dt,a==1 | a==2,x=400)
+  mutate_rows(group_by(dt,a),a==1 | a==2,x=mean(b)) 
+  mutate_rows(group_by(df,a),a==1 | a==2,x=mean(b))
 
   # if you create a new column rows that don't
   # match the if condition have an NA
-  mutate_if(df,a==3,z=100)
+  mutate_rows(df,a==3,z=100)
   
-  # You can only have one if condition in a mutate_if call
+  # You can only have one if condition in a mutate_rows call
   # So multiple changes require nesting or piping
   library(magrittr)
-  df %>% mutate_if(a==3,z=300) %>%
-         mutate_if(a==2,z=200) 
+  df %>% mutate_rows(a==3,z=300) %>%
+         mutate_rows(a==2,z=200) 
+  
+  # For historical reasons there is also still the synonym
+  # mutate_if. But not that dplyr 5.0 has introduced its own
+  # mutate_if function with quite different functionality
+  
+  mutate_if(df,a==3,y=99)
   
     
   
@@ -176,12 +201,11 @@ examples.mutate_if = function() {
   x=rnorm(n))
   microbenchmark(times = 5L,
     mutate(df, x=ifelse(a==2,x+100,x)),
-    mutate_if(df, a==2, x=x+100),
+    mutate(df, x=if_else(a==2,x+100,x)),
+    mutate_rows(df, a==2, x=x+100)
   )
-  #Unit: milliseconds
-  # expr min lq median uq max neval
-  # mutate(df, x = ifelse(a == 2, x + 100, x)) 749.2954 754.4179 815.06681 820.95872 860.79326 5
-  # mutate_if(df, a == 2, x = x + 100) 72.2886 75.4189 77.47787 83.64689 86.33666 5
-  
- 
+#             mean
+# ifelse      540.7145
+# if_else     360.4928
+# mutate_rows 114.3891
 }
