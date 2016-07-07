@@ -2,11 +2,23 @@
 % Please edit documentation in R/xsummarise_each.r
 \name{xsummarise_each_}
 \alias{xsummarise_each_}
-\title{extended version of summarise_each_ that allows alternative arrangement of outputs}
+\title{extended version of summarise_each_q that allows alternative arrangement of outputs}
 \usage{
-xsummarise_each_(tbl, funs, vars, .long = "funs", .wide = "vars")
+xsummarise_each_(tbl, funs, vars, .long = "funs", .wide = NA,
+  fun.var = ".fun", var.var = ".var")
+}
+\arguments{
+\item{tbl}{the date frame}
+
+\item{funs}{a list of functions, see the help of summarize_each, best use the helper function funs() to create them}
+
+\item{vars}{columns in tbl on which the functions should be applied}
+
+\item{.long}{either "funs" or "vars". Shall variables or functions be put in different rows?}
+
+\item{.wide}{currently ignored}
 }
 \description{
-currently it is only checked whether "funs" is in .long or not.
+extended version of summarise_each_q that allows alternative arrangement of outputs
 }
 

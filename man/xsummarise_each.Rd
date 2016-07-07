@@ -4,20 +4,32 @@
 \alias{xsummarise_each}
 \title{extended version of summarise_each that allows alternative arrangement of outputs}
 \usage{
-xsummarise_each(tbl, funs, ..., .long = "funs", .wide = "vars")
+xsummarise_each(tbl, funs, ..., .long = "funs", .wide = NA,
+  .fun.var = ".fun", .var.var = ".var")
+}
+\arguments{
+\item{tbl}{the date frame}
+
+\item{funs}{a list of functions, see the help of summarize_each, best use the helper function funs() to create them}
+
+\item{...}{columns in tbl on which the functions should be applied}
+
+\item{.long}{either "funs" or "vars". Shall variables or functions be put in different rows?}
+
+\item{.wide}{currently ignored}
 }
 \description{
-currently it is only checked whether "funs" is in .long or not. if yes
-then functions will be shown in different rows
+extended version of summarise_each that allows alternative arrangement of outputs
 }
 
 \examples{\dontrun{
   library(dplyr)
   library(dplyrExtras)
-  
-  data(iris)
   by_species <- group_by(iris,Species)
-  summarise_each(by_species,funs(min, max), Petal.Width, Sepal.Width)
-  xsummarise_each(by_species,funs(min, max), Petal.Width, Sepal.Width)
-  xsummarise_each_q(by_species,funs(min, max), vars=c("Petal.Width", "Sepal.Width"))
+  summarise_each(by_species,funs(min=min, max=max, mean=mean), Petal.Width, Sepal.Width)
+  xsummarise_each(by_species,funs(min=min, max=max(.,na.rm=TRUE)), Petal.Width, Sepal.Width, .long="vars", .var.var = "Variable")
+  xsummarise_each(by_species,funs(min=min, max=max), Petal.Width, Sepal.Width, .long="funs")
+  
+  xsummarise_each_(by_species,funs(min, max), vars=c("Petal.Width", "Sepal.Width"))
+  xsummarise_each_(by_species,funs(min, max), vars=c("Petal.Width", "Sepal.Width"), .long="vars", .var.var = "Variable")
 }}

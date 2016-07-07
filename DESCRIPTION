@@ -1,12 +1,13 @@
 Package: dplyrExtras
 Type: Package
-Title: extra functionality for dplyr like mutate_rows
-Version: 0.1.2
-Date: 2016-06-28
+Title: extra functionality for dplyr like mutate_rows for mutation of a subset of rows
+Version: 0.1.3
+Date: 2016-07-07
 Author: Sebastian Kranz
 Maintainer: Sebastian Kranz <sebastian.kranz@uni-ulm.de>
 Description: Some extra functionality that is not (yet) in dplyr, e.g.
-    mutate_rows, 
+    mutate_rows (mutation of subset of rows)
+    xsummarise_each (summarise_each with more flexible alignment of results),
     or s_filter, s_arrange ,... that allow string arguments.
 License: GPL>=2.0
 Depends:
