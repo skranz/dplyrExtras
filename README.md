@@ -1,9 +1,10 @@
 dplyrExtras
 ==============
 
-Some extra functionality that was helpful for older dplyr versions:
+Some extra functionality that was mainly helpful for older dplyr versions but less relevant now:
 
   - `mutate_rows` mutate selected rows (see https://github.com/hadley/dplyr/issues/425)
+  
     Note: dplyr 0.7 introduced the function `recode` and `case_when` that also allow to
     solve the issues `mutate_rows` adresses in a convenient way. For new projects, I would recommend to use these functions now, rather than `mutate_rows`. 
     
