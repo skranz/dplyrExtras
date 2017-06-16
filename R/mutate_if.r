@@ -91,7 +91,8 @@ mutate_rows.data.table <- function (.data,.if, ..., inplace = FALSE,.if.quoted=N
   .data <- copy(.data)
   env <- new.env(parent = .parent.env, size = 1L)
   env$data <- .data
-  cols <- dplyr:::named_dots(...)
+  cols <- named_dots(...)
+  #cols = eval(substitute(alist(...)))
    
   for (i in seq_along(cols)) {
   call <- substitute(data[.if.quoted, `:=`(lhs, rhs)], list(lhs = as.name(names(cols)[[i]]), rhs = cols[[i]], .if.quoted =.if.quoted))
@@ -113,7 +114,7 @@ mutate_rows.grouped_dt <- function(.data,.if, ..., inplace = FALSE, .if.quoted=N
   if (!inplace) data <- copy(data)
    
   env <- dt_env(data, parent.frame())
-  cols <- dplyr:::named_dots(...)
+  cols <- named_dots(...)
   # For each new variable, generate a call of the form df[, new := expr]
   for(col in names(cols)) {
     call <- substitute(dt[.if.quoted, lhs := rhs, by = vars],
