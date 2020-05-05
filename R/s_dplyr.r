@@ -2,6 +2,7 @@
 # Author: Sebastian Kranz
  
 # Examples are below
+
  
 #' Modified version of dplyr's filter that uses string arguments
 #' @param .data the data frame (or similar object)
@@ -85,4 +86,35 @@ examples.s_filter = examples.s_arrange = examples.s_select = examples.s_mutate =
   s_summarise(gd, "mean(disp), max(disp)")
   s_mutate_if(d, "cyl==6, new.col=100")
   
+}
+
+#' A variant of dplyr::recode which allows to provide
+#' old and new values as vectors, instead of named arguments
+#' 
+#' @param x a vector of values
+#' @param new a vector of replacement values. 
+#'            If new is named and old is not provided, the names
+#'            of new are the old values to be replaced
+#' @param old a vector old values to be replaced by new
+#' @param .default like in recode
+#' @param .missing like in recode
+#' @export
+
+recode_ = function(x, new, old=names(new), .default=NULL, .missing=NULL) {
+  if (is.character(old)) {
+    rows = match(as.character(x),old)
+  } else {
+    rows = match(x,old)
+  }
+  has.match = !is.na(rows)
+  x[has.match] = new[rows[has.match]]
+  na.rows = c()
+  if (!is.null(.missing)) {
+    na.rows = is.na(x)
+    x[na.rows] = .missing
+  }
+  if (!is.null(.default)) {
+    x[!has.match & !na.rows] = .default
+  }
+  x
 }

@@ -38,15 +38,19 @@ mutate_rows = function (.data,.if,...) {
 #' Originally the function mutate_rows was called mutate_if,
 #' however, dplyr 5.0 introduced also a function called mutate_if
 #' that does something different however. 
-#' I keep the synonym mutate_if in order to reduce the probability
-#' that old code breaks, but it is recommended to use mutate_rows
-#' instead.#' 
+#' I now have depricated the synonym mutate_if give 
+#' a warning and call dplyr:mutate_if
 #' @param .data the data
-#' @param .if a logical condition that selects rows, e.g. a=="B"
 #' @param ... the command to mutate existing columns
 #' @export
-mutate_if = function (.data,.if,...) {
-  UseMethod("mutate_rows")
+mutate_if = function (.data,...) {
+  res = try(dplyr::mutate_if(.data,...))
+  if (is(res, "try-error")) {
+    msg = as.character(res)
+    msg = paste0(msg, "\nNote that you called the function mutate_if in dplyrExtras instead of dplyr. If you wanted the dplyrExtras version note that it is deprecated since dplyr meanwhile also introduce a function mutate_if with different functionality. Use mutate_rows in dplyrExtras instead.")
+    stop(msg)
+  }  
+  res
 }
  
  

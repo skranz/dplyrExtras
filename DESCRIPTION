@@ -1,8 +1,8 @@
 Package: dplyrExtras
 Type: Package
 Title: extra functionality for dplyr like mutate_rows for mutation of a subset of rows
-Version: 0.1.3
-Date: 2016-07-07
+Version: 0.1.4
+Date: 2020-05-05
 Author: Sebastian Kranz
 Maintainer: Sebastian Kranz <sebastian.kranz@uni-ulm.de>
 Description: Some extra functionality that is not (yet) in dplyr, e.g.
