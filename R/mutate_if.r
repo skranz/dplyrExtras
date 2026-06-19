@@ -71,7 +71,7 @@ mutate_rows.data.frame =function (.data,.if,...)
 mutate_rows.tbl_df <- function (.data,.if,...) {
   dt = as.data.table(as.data.frame(.data))
   .if.quoted = substitute(.if)
-  tbl_df(mutate_rows.data.table(.data=dt,.if.quoted=.if.quoted,...,inplace=TRUE, .parent.env = parent.frame()))
+  tibble::as_tibble(mutate_rows.data.table(.data=dt,.if.quoted=.if.quoted,...,inplace=TRUE, .parent.env = parent.frame()))
 }
  
 #' @export
@@ -117,9 +117,10 @@ mutate_rows.grouped_dt <- function(.data,.if, ..., inplace = FALSE, .if.quoted=N
   .if.quoted = substitute(.if)
   if (!inplace) data <- copy(data)
    
+
   env <- dt_env(data, parent.frame())
   cols <- named_dots(...)
-  # For each new variable, generate a call of the form df[, new := expr]
+  # For each new variable, generate a call of the form dt[, new := expr]
   for(col in names(cols)) {
     call <- substitute(dt[.if.quoted, lhs := rhs, by = vars],
     list(lhs = as.name(col), rhs = cols[[col]], .if.quoted=.if.quoted))
@@ -139,18 +140,36 @@ mutate_rows.grouped_df <- function(.data,.if, ...) {
   # Problem: when transforming to data.table row order will be changed
   # by group_by operation at least in dplyr 0.1.3
   # So I manually restore the original row order
+
   if (NROW(.data)==0)
     return(.data)
   .if.quoted = substitute(.if)
+  cols <- dplyrExtras:::named_dots(...)
+  
+  #restore.point("jdifjdiofiodj")
   vars = groups(.data)
   dt = as.data.table(as.data.frame(.data))
   class(dt) = c("data.table","data.frame")
   # does not seem to work correctly
   #mutate(dt, INDEX.ROW__ = 1:NROW(.data), inplace=TRUE)
   dt$INDEX.ROW__ = 1:NROW(.data) # slower but seems to work
-  gdt = grouped_dt(dt, vars=vars)
-  gdt = mutate_rows.grouped_dt(gdt,.if.quoted=.if.quoted,..., inplace=TRUE)
-  data = dplyr:::grouped_df(data=as.data.frame(gdt), vars=vars)
+  
+#  env <- dt_env(data, parent.frame())
+#  env <- new.env(parent = parent.frame(), size = 2L)
+#  env$dt <- dt
+#  env$vars <- deparse_all(vars)
+  
+  # For each new variable, generate a call of the form dt[, new := expr]
+  for(col in names(cols)) {
+    call <- substitute(dt[.if.quoted, lhs := rhs, by = vars],
+    list(lhs = as.name(col), rhs = cols[[col]], .if.quoted=.if.quoted))
+    eval(call)
+  }
+  
+  
+  #gdt = grouped_dt(dt, vars=vars)
+  #gdt = mutate_rows.grouped_dt(gdt,.if.quoted=.if.quoted,..., inplace=TRUE)
+  data = dplyr:::grouped_df(data=as.data.frame(dt), vars=vars)
   # restore original order
   data = select(arrange(data, INDEX.ROW__), -INDEX.ROW__)
   data
